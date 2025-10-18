@@ -12,3 +12,5 @@ run
 *_r*_t1
 STDIN.*
 *.tar.gz
+*make.log
+run.sh.*

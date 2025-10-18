@@ -17,7 +17,7 @@ Miyabi-G向けのジョブスクリプトが含まれます．
 以下は全てMiyabi-Gでの利用方法です．
 
 ```bash
-module load nvidia cuda ompi-cuda   # NVIDA HPC SDK, OpenMPIの環境構築。ログインの度必要です．
+module load nvidia nv-hpcx   # NVIDA HPC SDK, OpenMPIの環境構築。ログインの度必要です．
 cd /work/グループ名/$USER/        #/home は計算ノードから参照できないので、/work以下で作業しましょう．
 git clone https://github.com/ymiki-repo/directive_mpi.git
 cd directive_mpi/
