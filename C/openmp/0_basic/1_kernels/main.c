@@ -35,9 +35,7 @@ int main(int argc, char *argv[])
 
     /**** Begin ****/
 
-
-#pragma acc kernels copyout(a[0:n], b[0:n])
-#pragma acc loop independent
+#pragma omp target teams loop map(from: a[0:n], b[0:n])
     for (unsigned int i=0; i<n; i++) {
         a[i] = 3.0 * rank * ny;
         b[i] = 0.0;
@@ -53,8 +51,7 @@ int main(int argc, char *argv[])
     }
 
     double sum = 0.0;
-#pragma acc kernels copyin(b[0:n])
-#pragma acc loop reduction(+:sum)
+#pragma omp target teams loop map(to: b[0:n]) reduction(+: sum)
     for (unsigned int i=0; i<n; i++) {
         sum += b[i];
     }
