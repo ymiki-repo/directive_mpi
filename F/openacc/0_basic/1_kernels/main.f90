@@ -1,6 +1,5 @@
 program main
   use mpi
-  use openacc
   implicit none
   integer :: ierr, nprocs, rank
   integer, parameter :: nx = 4096
@@ -14,7 +13,7 @@ program main
   double precision :: sum
 
   call MPI_Init(ierr)
-  
+
   nprocs = 1
   rank = 0
 
@@ -23,27 +22,16 @@ program main
 
   allocate(istat(MPI_STATUS_SIZE))
 
-  if (nprocs .ne. 2) then 
+  if (nprocs .ne. 2) then
      call MPI_Finalize(ierr)
      stop
   end if
 
-  ngpus = acc_get_num_devices(acc_device_nvidia)
-  if(rank == 0) then
-     print *, "num of GPUs = ", ngpus
-  end if
-
-  gpuid = mod(rank, ngpus)
-  if(ngpus == 0) gpuid = -1
-  if(gpuid >= 0) then
-     call acc_set_device_num(gpuid, acc_device_nvidia)
-  end if
-
   allocate(a(nx,ny))
   allocate(b(nx,ny))
-    
+
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
-    
+
   st = MPI_WTIME()
   !**** Begin ****
 
@@ -77,20 +65,20 @@ program main
      end do
   end do
   !$acc end kernels
- 
+
   !**** End ****
 
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
-    
+
   et = MPI_WTIME()
 
   if (rank == 0) then
      write(*,'(A6,F10.6)'), "mean =", sum / (nx*ny)
      write(*,'(A6,F10.6,A6)'), "Time =", et-st, " [sec]"
   end if
-    
+
   deallocate(a,b)
-  
+
   call MPI_Finalize(ierr)
 
 end program main

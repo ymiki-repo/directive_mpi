@@ -1,8 +1,8 @@
 F90  = mpif90
 RM  = rm -f
 
-FFLAGS    = -O3 -acc -ta=tesla,cc80 -Minfo=accel
-LDFLAGS   = 
+FFLAGS    = -O3 -acc=gpu -gpu=cc90 -Minfo=accel,opt
+LDFLAGS   =
 
 SRCS   = main.f90
 TARGET = run
