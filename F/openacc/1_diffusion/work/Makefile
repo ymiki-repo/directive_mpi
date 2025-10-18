@@ -1,7 +1,7 @@
 F90  = mpif90
 RM  = rm -f
 
-FFLAGS    = -O3 -acc -Minfo=accel -ta=tesla,cc80
+FFLAGS    = -O3 
 LDFLAGS   = 
 
 SRCS   = misc.f90 diffusion.f90 main.f90

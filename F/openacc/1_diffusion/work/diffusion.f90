@@ -22,12 +22,8 @@ contains
 
     cc = 1.0 - (ce + cw + cn + cs + ct + cb)
 
-    !$acc kernels present(f,fn)
-    !$acc loop independent
     do k = 1, nz
-       !$acc loop independent
        do j = 1, ny
-          !$acc loop independent
           do i = 1, nx
 
              w = -1; e = 1; n = -1; s = 1; b = -1; t = 1;
@@ -44,7 +40,6 @@ contains
           end do
        end do
     end do
-    !$acc end kernels
 
     diffusion3d = dble(nx*ny*nz)*13.0
 

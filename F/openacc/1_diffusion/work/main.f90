@@ -2,7 +2,6 @@ program main
   use mpi
   use diffusion
   use misc
-  use openacc
   implicit none
 
   integer,parameter :: nx0 = 128
@@ -23,22 +22,15 @@ program main
   real(KIND=4),pointer,dimension(:,:,:) :: f,fn
   integer :: nprocs, rank, ierr, rank_up, rank_down, tag
   integer,allocatable :: istat(:)
-  integer :: ngpus, gpuid
 
   call MPI_Init(ierr)
   allocate(istat(MPI_STATUS_SIZE))
 
   nprocs = 1
   rank   = 0
-  ngpus = 0
-  gpuid = 0
 
   call MPI_Comm_size(MPI_COMM_WORLD, nprocs, ierr)
   call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
-
-  ngpus = acc_get_num_devices(acc_device_nvidia)
-  gpuid = mod(rank,ngpus)
-  call acc_set_device_num(gpuid,acc_device_nvidia)
 
   rank_up   = rank + 1
   rank_down = rank - 1
@@ -73,20 +65,17 @@ program main
 
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
-  !$acc data copy(f) create(fn)
   call start_timer()
 
   do icnt = 0, nt-1
      if(rank == 0 .and. mod(icnt,100) == 0) write (*,"(A5,I4,A4,F7.5)"), "time(",icnt,") = ",time
 
      tag = 0
-     !$acc host_data use_device(f)
      call MPI_Send(f(1,1,nz)  , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, ierr)
      call MPI_Recv(f(1,1,0)   , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, istat, ierr)
 
      call MPI_Send(f(1,1,1)   , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, ierr)
      call MPI_Recv(f(1,1,nz+1), nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, istat, ierr)
-     !$acc end host_data
 
      flop = flop + diffusion3d(nprocs, rank, nx, ny, nz, dx, dy, dz, dt, kappa, f, fn)
 
@@ -99,7 +88,6 @@ program main
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
     
   elapsed_time = get_elapsed_time();
-  !$acc end data
 
   if (rank == 0) then
      write(*, "(A7,F8.3,A6)"), "Time = ",elapsed_time," [sec]"
