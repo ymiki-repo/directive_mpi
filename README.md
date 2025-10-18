@@ -1,27 +1,25 @@
-# lecture_openacc_mpi
+# directive_mpi
 
-東京大学情報基盤センター お試しアカウント付き講習会「OpenACCとMPIによるマルチGPUプログラミング入門」で使用しているサンプルコード(C, Fortran)です。
-OpenACCとMPIを組み合わせて利用する方法が学べます。
-Wisteria/BDEC-01 Aquariusノード向けのジョブスクリプトが含まれます。
+東京大学情報基盤センター お試しアカウント付き講習会「指示文とMPIによるマルチGPUプログラミング入門」で使用するサンプルコード(C, Fortran)です．
+指示文（OpenACCあるいはOpenMP target）によるGPU実装とMPIを組み合わせて利用する方法が学べます．
+Miyabi-G向けのジョブスクリプトが含まれます．
 講習会URL： https://www.cc.u-tokyo.ac.jp/events/lectures/
 
-
-# Requirement
+## Requirement
 
 * NVIDA HPC SDK： https://developer.nvidia.com/nvidia-hpc-sdk-downloads
 
-* OpenMPI 
+* GPU-aware MPI
+  * Miyabi-G には予めインストールされています
 
-  Wisteria/BDEC-01 には予めインストールされています。
+## Usage
 
-# Usage
-
-以下は全てWisteria/BDEC-01 Aquariusでの利用方法です。
+以下は全てMiyabi-Gでの利用方法です．
 
 ```bash
-module load nvidia cuda ompi-cuda   # NVIDA HPC SDK, OpenMPIの環境構築。ログインの度必要です。
-cd /work/グループ名/ユーザ名/        #/home は計算ノードから参照できないので、/work以下で作業しましょう。
-git clone https://github.com/hoshino-UTokyo/lecture_openacc_mpi.git
-cd lecture_openacc_mpi/
+module load nvidia cuda ompi-cuda   # NVIDA HPC SDK, OpenMPIの環境構築。ログインの度必要です．
+cd /work/グループ名/$USER/        #/home は計算ノードから参照できないので、/work以下で作業しましょう．
+git clone https://github.com/ymiki-repo/directive_mpi.git
+cd directive_mpi/
 cd C or F                          # C, Fortran好きな方を選んでください。
 ```
