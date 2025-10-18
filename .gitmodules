@@ -1,0 +1,3 @@
+[submodule "C/solomon/solomon"]
+	path = C/solomon/solomon
+	url = https://github.com/ymiki-repo/solomon.git
