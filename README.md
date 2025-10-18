@@ -21,5 +21,6 @@ module load nvidia nv-hpcx   # NVIDA HPC SDK, OpenMPIの環境構築。ログイ
 cd /work/グループ名/$USER/        #/home は計算ノードから参照できないので、/work以下で作業しましょう．
 git clone --recurse-submodules https://github.com/ymiki-repo/directive_mpi.git
 cd directive_mpi/
-cd C or F                          # C, Fortran好きな方を選んでください。
+cd C or F                          # C, Fortran好きな方を選んでください．
+cd openacc or openmp or solomon    # OpenACC, OpenMP target のうち好きな方を選んでください．Cの方は Solomon も選択可能です．
 ```
