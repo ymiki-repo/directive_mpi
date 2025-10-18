@@ -5,7 +5,10 @@ GCC  = gcc
 RM  = rm -f
 MAKEDEPEND = makedepend
 
-CFLAGS    = -O3 -acc=gpu -Minfo=accel,opt -gpu=cc90
+CFLAGS    = -O3 -Minfo=opt,accel,mp -gpu=cc90
+CFLAGS	+= -I../../solomon/solomon
+CFLAGS	+= -acc=gpu -DOFFLOAD_BY_OPENACC
+# CFLAGS	+= -mp=gpu -DOFFLOAD_BY_OPENMP_TARGET
 GFLAGS    = -Wall -O3 -std=c99
 CXXFLAGS  = $(CFLAGS)
 LDFLAGS   =
