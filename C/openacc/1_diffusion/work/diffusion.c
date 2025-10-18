@@ -15,12 +15,8 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 
     const float cc = 1.0 - (ce + cw + cn + cs + ct + cb);
 
-#pragma acc kernels present(f,fn)
-#pragma acc loop independent
     for(int k = 0; k < nz; k++) {
-#pragma acc loop independent
         for (int j = 0; j < ny; j++) {
-#pragma acc loop independent
             for (int i = 0; i < nx; i++) {
                 const int ix = nx*ny*(k+mgn) + nx*j + i;
                 const int ip = i == nx - 1 ? ix : ix + 1;
@@ -41,7 +37,7 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 
 void init(int nprocs, int rank, int nx, int ny, int nz, int mgn, float dx, float dy, float dz, float *f)
 {
-    const float kx = 2.0*M_PI;
+    const float kx = 2.0F*(float)M_PI;
     const float ky = kx;
     const float kz = kx;
 
@@ -49,11 +45,11 @@ void init(int nprocs, int rank, int nx, int ny, int nz, int mgn, float dx, float
         for(int j=0; j < ny; j++) {
             for(int i=0; i < nx; i++) {
                 const int ix = nx*ny*(k+mgn) + nx*j + i;
-                const float x = dx*((float)i + 0.5);
-                const float y = dy*((float)j + 0.5);
-                const float z = dz*((float)(k + nz*rank) + 0.5);
+                const float x = dx*((float)i + 0.5F);
+                const float y = dy*((float)j + 0.5F);
+                const float z = dz*((float)(k + nz*rank) + 0.5F);
 
-                f[ix] = 0.125*(1.0 - cos(kx*x))*(1.0 - cos(ky*y))*(1.0 - cos(kz*z));
+                f[ix] = 0.125F*(1.0F - cosf(kx*x))*(1.0F - cosf(ky*y))*(1.0F - cosf(kz*z));
 
             }
         }
@@ -62,13 +58,13 @@ void init(int nprocs, int rank, int nx, int ny, int nz, int mgn, float dx, float
 
 double err(int nprocs, int rank, double time, int nx, int ny, int nz, int mgn, float dx, float dy, float dz, float kappa, const float *f)
 {
-    const float kx = 2.0*M_PI;
+    const float kx = 2.0F*(float)M_PI;
     const float ky = kx;
     const float kz = kx;
 
-    const float ax = exp(-kappa*time*(kx*kx));
-    const float ay = exp(-kappa*time*(ky*ky));
-    const float az = exp(-kappa*time*(kz*kz));
+    const float ax = expf(-kappa*(float)time*(kx*kx));
+    const float ay = expf(-kappa*(float)time*(ky*ky));
+    const float az = expf(-kappa*(float)time*(kz*kz));
 
     double ferr = 0.0;
 
@@ -76,13 +72,14 @@ double err(int nprocs, int rank, double time, int nx, int ny, int nz, int mgn, f
         for(int j=0; j < ny; j++) {
             for(int i=0; i < nx; i++) {
                 const int ix = nx*ny*(k+mgn) + nx*j + i;
-                const float x = dx*((float)i + 0.5);
-                const float y = dy*((float)j + 0.5);
-                const float z = dz*((float)(k + nz*rank) + 0.5);
+                const float x = dx*((float)i + 0.5F);
+                const float y = dy*((float)j + 0.5F);
+                const float z = dz*((float)(k + nz*rank) + 0.5F);
 
-                const float f0 = 0.125*(1.0 - ax*cos(kx*x)) * (1.0 - ay*cos(ky*y)) * (1.0 - az*cos(kz*z));
+                const float f0 = 0.125F*(1.0F - ax*cosf(kx*x)) * (1.0F - ay*cosf(ky*y)) * (1.0F - az*cosf(kz*z));
 
-                ferr += (f[ix] - f0)*(f[ix] - f0);
+                const double diff = (double)f[ix] - (double)f0;
+                ferr += diff * diff;
             }
         }
     }
