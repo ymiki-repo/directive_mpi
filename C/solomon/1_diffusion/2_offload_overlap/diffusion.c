@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <math.h>
-
+#include <solomon.hpp>
 
 double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float dx, float dy, float dz, float dt, float kappa,
                    const float *f, float *fn)
@@ -17,8 +17,7 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
     const float cc = 1.0F - (ce + cw + cn + cs + ct + cb);
 
     int k = 0;
-#pragma acc kernels async(0) present(f, fn)
-#pragma acc loop independent collapse(2)
+    OFFLOAD(AS_INDEPENDENT, COLLAPSE(2), AS_ASYNC(0), ACC_CLAUSE_PRESENT(f, fn))
     for (int j = 0; j < ny; j++) {
 	for (int i = 0; i < nx; i++) {
 	    const int ix = nx*ny*(k+mgn) + nx*j + i;
@@ -33,8 +32,7 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 	}
     }
     k = nz-1;
-#pragma acc kernels async(1) present(f, fn)
-#pragma acc loop independent collapse(2)
+    OFFLOAD(AS_INDEPENDENT, COLLAPSE(2), AS_ASYNC(1), ACC_CLAUSE_PRESENT(f, fn))
     for (int j = 0; j < ny; j++) {
 	for (int i = 0; i < nx; i++) {
 	    const int ix = nx*ny*(k+mgn) + nx*j + i;
@@ -49,8 +47,7 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 	}
     }
 
-#pragma acc kernels async(2) present(f, fn)
-#pragma acc loop independent collapse(3)
+    OFFLOAD(AS_INDEPENDENT, COLLAPSE(3), AS_ASYNC(2), ACC_CLAUSE_PRESENT(f, fn))
     for(int k = 1; k < nz-1; k++) {
         for (int j = 0; j < ny; j++) {
             for (int i = 0; i < nx; i++) {

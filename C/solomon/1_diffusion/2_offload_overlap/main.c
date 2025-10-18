@@ -5,6 +5,7 @@
 #include <mpi.h>
 #include "diffusion.h"
 #include "misc.h"
+#include <solomon.hpp>
 
 int main(int argc, char *argv[])
 {
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-#pragma acc data copy(f[0:ln]) create(fn[0:ln])
+    DATA_ACCESS_BY_DEVICE(COPY_BEFORE_AND_AFTER_EXEC(f[0:ln]), ACC_CLAUSE_CREATE(fn[0:ln]))
     {
 
         start_timer();
@@ -95,19 +96,19 @@ int main(int argc, char *argv[])
 
             const int tag = 0;
             MPI_Status stat[4];
-	    MPI_Request req[4];
+            MPI_Request req[4];
 
-#pragma acc wait(0)
-#pragma acc wait(1)
-#pragma acc host_data use_device(f)
+            SYNCHRONIZE(0)
+            SYNCHRONIZE(1)
+            USE_DEVICE_DATA_FROM_HOST(f)
             {
                 MPI_Irecv(&f[0]             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &req[0]);
                 MPI_Irecv(&f[nx*ny*(nz+mgn)], nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, &req[1]);
                 MPI_Isend(&f[nx*ny*nz]      , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, &req[2]);
                 MPI_Isend(&f[nx*ny*mgn]     , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &req[3]);
             }
-	    MPI_Waitall(4,req,stat);
-#pragma acc wait(2)
+            MPI_Waitall(4,req,stat);
+            SYNCHRONIZE(2)
 
             flop += diffusion3d(nprocs, rank, nx, ny, nz, mgn, dx, dy, dz, dt, kappa, f, fn);
 
