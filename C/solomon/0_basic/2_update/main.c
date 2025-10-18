@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <mpi.h>
+#include <solomon.hpp>
 
 double get_elapsed_time(const struct timeval *tv0, const struct timeval *tv1);
 
@@ -36,11 +37,10 @@ int main(int argc, char *argv[])
     /**** Begin ****/
 
     double sum = 0.0;
-#pragma acc data create(a[0:n], b[0:n])
+    MALLOC_ON_DEVICE(a[0:n], b[0:n])
     {
 
-#pragma acc kernels copyout(a[0:n], b[0:n])
-#pragma acc loop independent
+        OFFLOAD(AS_INDEPENDENT, COPY_D2H_AFTER_EXEC(a[0:n], b[0:n]))
         for (unsigned int i=0; i<n; i++) {
             a[i] = 3.0 * rank * ny;
             b[i] = 0.0;
@@ -51,18 +51,18 @@ int main(int argc, char *argv[])
         if (rank == 0) {
             MPI_Status status;
             MPI_Recv(b, w * nx, MPI_FLOAT, dst_rank, tag, MPI_COMM_WORLD, &status);
-#pragma acc update device(b[0:w *nx])
+            MEMCPY_H2D(b[0:w *nx])
         } else {
-#pragma acc update host(a[0:w *nx])
+            MEMCPY_D2H(a[0:w *nx])
             MPI_Send(a, w * nx, MPI_FLOAT, dst_rank, tag, MPI_COMM_WORLD);
         }
 
-#pragma acc kernels copyin(b[0:n])
-#pragma acc loop reduction(+:sum)
+        OFFLOAD(COPY_H2D_BEFORE_EXEC(b[0:n]), REDUCTION(+:sum))
         for (unsigned int i=0; i<n; i++) {
             sum += b[i];
         }
     }
+    FREE_FROM_DEVICE(a[0:n], b[0:n])
 
     /**** End ****/
 
