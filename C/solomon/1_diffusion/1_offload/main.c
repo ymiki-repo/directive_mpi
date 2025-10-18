@@ -5,6 +5,7 @@
 #include <mpi.h>
 #include "diffusion.h"
 #include "misc.h"
+#include <solomon.hpp>
 
 int main(int argc, char *argv[])
 {
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-#pragma acc data copy(f[0:ln]) create(fn[0:ln])
+    DATA_ACCESS_BY_DEVICE(COPY_BEFORE_AND_AFTER_EXEC(f[0:ln]), ACC_CLAUSE_CREATE(fn[0:ln]))
     {
 
         start_timer();
@@ -96,7 +97,7 @@ int main(int argc, char *argv[])
             const int tag = 0;
             MPI_Status status;
 
-#pragma acc host_data use_device(f)
+            USE_DEVICE_DATA_FROM_HOST(f)
             {
                 MPI_Send(&f[nx*ny*nz]      , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD);
                 MPI_Recv(&f[0]             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &status);

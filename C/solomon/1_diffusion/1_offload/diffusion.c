@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <math.h>
-
+#include <solomon.hpp>
 
 double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float dx, float dy, float dz, float dt, float kappa,
                    const float *f, float *fn)
@@ -16,12 +16,9 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 
     const float cc = 1.0 - (ce + cw + cn + cs + ct + cb);
 
-#pragma acc kernels present(f, fn)
-#pragma acc loop independent
+    OFFLOAD(AS_INDEPENDENT, COLLAPSE(3), ACC_CLAUSE_PRESENT(f, fn))
     for(int k = 0; k < nz; k++) {
-#pragma acc loop independent
         for (int j = 0; j < ny; j++) {
-#pragma acc loop independent
             for (int i = 0; i < nx; i++) {
                 const int ix = nx*ny*(k+mgn) + nx*j + i;
                 const int ip = i == nx - 1 ? ix : ix + 1;
