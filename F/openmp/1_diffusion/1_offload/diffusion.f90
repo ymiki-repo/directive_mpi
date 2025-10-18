@@ -4,7 +4,7 @@ module diffusion
 contains
 
   double precision function diffusion3d(nprocs, rank, nx, ny, nz, dx, dy, dz, dt, kappa, f, fn)
-    
+
     integer,intent(in) :: nx, ny, nz, nprocs, rank
     real(KIND=4),intent(in) :: dx, dy, dz, dt, kappa
     real(KIND=4),intent(in),dimension(1:nx,1:ny,0:nz+1) :: f
@@ -22,12 +22,9 @@ contains
 
     cc = 1.0 - (ce + cw + cn + cs + ct + cb)
 
-    !$acc kernels present(f, fn)
-    !$acc loop independent
+    !$omp target teams loop collapse(3)
     do k = 1, nz
-       !$acc loop independent
        do j = 1, ny
-          !$acc loop independent
           do i = 1, nx
 
              w = -1; e = 1; n = -1; s = 1; b = -1; t = 1;
@@ -44,7 +41,6 @@ contains
           end do
        end do
     end do
-    !$acc end kernels
 
     diffusion3d = dble(nx*ny*nz)*13.0
 
@@ -52,7 +48,7 @@ contains
 
 
   subroutine init(nprocs, rank, nx, ny, nz, dx, dy, dz, f)
-    
+
     integer,intent(in) :: nx, ny, nz, nprocs, rank
     real(KIND=4),intent(in) :: dx, dy, dz
     real(KIND=4),intent(out),dimension(1:nx,1:ny,0:nz+1) :: f
@@ -63,7 +59,7 @@ contains
     kx = 2.0*pi
     ky = kx
     kz = kx
-    
+
     do k = 0, nz+1
        do j = 1, ny
           do i = 1, nx

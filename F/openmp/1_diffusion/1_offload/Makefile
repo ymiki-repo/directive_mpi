@@ -1,7 +1,7 @@
 F90  = mpif90
 RM  = rm -f
 
-FFLAGS    = -O3 -acc=gpu -Minfo=accel,opt -gpu=cc90 -cpp
+FFLAGS    = -O3 -mp=gpu -Minfo=accel,opt,mp -gpu=cc90 -cpp
 LDFLAGS   =
 
 SRCS   = misc.f90 diffusion.f90 main.f90

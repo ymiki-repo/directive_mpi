@@ -1,7 +1,7 @@
 #ifndef MPI_TYPE
-#define MPI_TYPE 2
+#define MPI_TYPE 1
 ! 0 ... by host (correct)
-! 1 ... cuda aware (error)
+! 1 ... cuda aware (correct)
 ! other ... cuda aware (work around, correct)
 #endif
 
@@ -83,27 +83,27 @@ program main
 
   call start_timer()
 
-  !$acc data copy(f,fn)
+  !$omp target data map(tofrom:f, fn)
   do icnt = 0, nt-1
      if(rank == 0 .and. mod(icnt,100) == 0) write (*,"(A5,I4,A4,F7.5)"), "time(",icnt,") = ",time
 
      tag = 0
 #if MPI_TYPE==0
-     !$acc update host(f(1:nx,1:ny,nz), f(1:nx,1:ny,1))
+     !$omp target data use_device_ptr(f(1:nx,1:ny,nz), f(1:nx,1:ny,1))
      call MPI_Send(f(1,1,nz)  , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, ierr)
      call MPI_Recv(f(1,1,0)   , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, istat, ierr)
 
      call MPI_Send(f(1,1,1)   , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, ierr)
      call MPI_Recv(f(1,1,nz+1), nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, istat, ierr)
-     !$acc update device(f(1:nx,1:ny,0), f(1:nx,1:ny,nz+1))
+     !$omp end target data
 #elif MPI_TYPE==1
-     !$acc host_data use_device(f)
+     !$omp target data use_device_ptr(f)
      call MPI_Send(f(1,1,nz)  , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, ierr)
      call MPI_Recv(f(1,1,0)   , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, istat, ierr)
 
      call MPI_Send(f(1,1,1)   , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, ierr)
      call MPI_Recv(f(1,1,nz+1), nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, istat, ierr)
-     !$acc end host_data
+     !$omp end target data
 #else
      ! avoid openmpi(?) bug
      call work_around(f,nx,ny,nz,rank_up,rank_down,tag,istat,ierr)
@@ -116,7 +116,7 @@ program main
      time = time + dt
      if(time + 0.5*dt >= 0.1) exit
   end do
-  !$acc end data
+  !$omp end target data
 
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
@@ -150,12 +150,12 @@ contains
     real(kind=4), dimension(*) :: f
     integer :: nx,ny,nz,rank_up,rank_down,tag,istat(:),ierr
 
-    !$acc host_data use_device(f)
+    !$omp target data use_device_ptr(f)
     call MPI_Send(f(nx*ny*nz+1)    , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, ierr)
     call MPI_Recv(f(1)             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, istat, ierr)
     call MPI_Send(f(nx*ny+1)       , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, ierr)
     call MPI_Recv(f(nx*ny*(nz+1)+1), nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, istat, ierr)
-    !$acc end host_data
+    !$omp end target data
   end subroutine work_around
 
 end program main
