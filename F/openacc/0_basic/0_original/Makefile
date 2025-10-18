@@ -1,8 +1,8 @@
 F90  = mpif90
 RM  = rm -f
 
-FFLAGS    = -O3 -acc -ta=tesla,cc80
-LDFLAGS   = 
+FFLAGS    = -O3
+LDFLAGS   =
 
 SRCS   = main.f90
 TARGET = run
