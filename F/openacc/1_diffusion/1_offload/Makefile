@@ -1,9 +1,8 @@
 F90  = mpif90
 RM  = rm -f
 
-FFLAGS    = -O3 -acc -Minfo=accel -ta=tesla,cc80 -cpp
-#FFLAGS    = -O3 -noacc -cpp
-LDFLAGS   = 
+FFLAGS    = -O3 -acc=gpu -Minfo=accel,opt -gpu=cc90 -cpp
+LDFLAGS   =
 
 SRCS   = misc.f90 diffusion.f90 main.f90
 TARGET = run

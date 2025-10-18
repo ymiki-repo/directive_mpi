@@ -1,15 +1,12 @@
 #ifndef MPI_TYPE
 #define MPI_TYPE 2
-! 0 ... by host (correct) 
+! 0 ... by host (correct)
 ! 1 ... cuda aware (error)
 ! other ... cuda aware (work around, correct)
 #endif
 
 program main
   use mpi
-#ifdef _OPENACC
-  use openacc
-#endif
   use diffusion
   use misc
   implicit none
@@ -32,7 +29,7 @@ program main
   real(KIND=4),pointer,dimension(:,:,:) :: f,fn
   integer :: nprocs, rank, ierr, rank_up, rank_down, tag
   integer,allocatable :: istat(:)
-  integer :: ngpus, gpuid, i, len_name
+  integer :: i, len_name
   character :: hostname*12, eval*12
 
   call MPI_Init(ierr)
@@ -46,15 +43,15 @@ program main
 
   rank_up   = rank + 1
   rank_down = rank - 1
-  if(rank == nprocs-1) rank_up   = MPI_PROC_NULL 
-  if(rank == 0)        rank_down = MPI_PROC_NULL 
+  if(rank == nprocs-1) rank_up   = MPI_PROC_NULL
+  if(rank == 0)        rank_down = MPI_PROC_NULL
 
   nx = nx0
   ny = ny0
   nz = nz0 / nprocs
   n  = nx*ny*nz
 
-  if (nz * nprocs .ne. nz0) then 
+  if (nz * nprocs .ne. nz0) then
      if (rank == 0) then
         print *, "Error: nz * nprocs != nz0, (nz,nprocs,nz0) = ", nz, nprocs, nz0
      end if
@@ -62,39 +59,19 @@ program main
      stop
   end if
 
-  if (rank == 0) then 
+  if (rank == 0) then
      print *, "nprocs = ", nprocs
   end if
-
-#ifdef _OPENACC
-  ngpus = acc_get_num_devices(acc_device_nvidia)
-  if(rank == 0) then
-     print *, "num of GPUs = ", ngpus
-  end if
-
-  gpuid = mod(rank, ngpus)
-  if(ngpus == 0) gpuid = -1
-  if(gpuid >= 0) then
-     call acc_set_device_num(gpuid, acc_device_nvidia)
-  end if
-
-  ! if (rank == 0) then
-  !    call getenv("OMPI_MCA_btl_smcuda_use_cuda_ipc",eval)
-  !    print *, "OMPI_MCA_btl_smcuda_use_cuda_ipc  =",eval
-  !    call getenv("OMPI_MCA_btl_openib_want_cuda_ipc",eval)
-  !    print *, "OMPI_MCA_btl_openib_want_cuda_gdr =",eval
-  ! end if
 
   do i = 0, nprocs-1
      call MPI_Barrier(MPI_COMM_WORLD, ierr)
      if (i .ne. rank) cycle
      call MPI_get_processor_name(hostname, len_name, ierr)
-     write(*,'(A5,I2,A14,A12,A10,I2)') "Rank ", rank, ": hostname = ", hostname, "GPU num = ", gpuid
+     write(*,'(A5,I2,A14,A12)') "Rank ", rank, ": hostname = ", hostname
   end do
-#endif
 
   time = 0.d0
-  flop = 0.d0 
+  flop = 0.d0
   elapsed_time = 0.d0
 
   allocate(f(nx,ny,0:nz+1))
@@ -142,7 +119,7 @@ program main
   !$acc end data
 
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
-    
+
   elapsed_time = get_elapsed_time();
 
   if (rank == 0) then
@@ -158,7 +135,7 @@ program main
 
   faccuracy = sqrt(ferr_sum/dble(nx0*ny0*nz0))
 
-  if (rank == 0) then 
+  if (rank == 0) then
      write(*, "(A6,I0,A2,I0,A2,I0,A4,E12.6)"), "Error[",nx0,"][",ny0,"][",nz0,"] = ",faccuracy
   end if
 
@@ -172,7 +149,7 @@ contains
     implicit none
     real(kind=4), dimension(*) :: f
     integer :: nx,ny,nz,rank_up,rank_down,tag,istat(:),ierr
-    
+
     !$acc host_data use_device(f)
     call MPI_Send(f(nx*ny*nz+1)    , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, ierr)
     call MPI_Recv(f(1)             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, istat, ierr)
