@@ -10,4 +10,4 @@ module load nvidia nv-hpcx
 cd ${PBS_O_WORKDIR}
 
 export UCX_MEMTYPE_CACHE=n
-mpiexec ./run
+mpiexec sh/common/wrapper.sh ./run
