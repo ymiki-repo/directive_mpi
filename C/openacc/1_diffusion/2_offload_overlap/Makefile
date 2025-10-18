@@ -5,10 +5,10 @@ GCC  = gcc
 RM  = rm -f
 MAKEDEPEND = makedepend
 
-CFLAGS    = -O3 -acc=gpu -Minfo=accel -gpu=cc80
+CFLAGS    = -O3 -acc=gpu -Minfo=accel,opt -gpu=cc90
 GFLAGS    = -Wall -O3 -std=c99
 CXXFLAGS  = $(CFLAGS)
-LDFLAGS   = 
+LDFLAGS   =
 
 SRCS    = main.c diffusion.c misc.c
 TARGET = run
