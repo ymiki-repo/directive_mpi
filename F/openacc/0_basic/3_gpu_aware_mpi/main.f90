@@ -1,6 +1,5 @@
 program main
   use mpi
-  use openacc
   implicit none
   integer :: ierr, nprocs, rank
   integer, parameter :: nx = 4096
@@ -9,14 +8,14 @@ program main
   real, allocatable :: a(:,:), b(:,:)
   integer :: i, j
   double precision :: st, et
-  integer :: dst_rank, tag, ngpus, gpuid
+  integer :: dst_rank, tag
   integer, allocatable :: istat(:)
   double precision :: sum
   character :: hostname*128
   integer :: len_name
 
   call MPI_Init(ierr)
-  
+
   nprocs = 1
   rank = 0
 
@@ -25,30 +24,19 @@ program main
 
   allocate(istat(MPI_STATUS_SIZE))
 
-  if (nprocs .ne. 2) then 
+  if (nprocs .ne. 2) then
      call MPI_Finalize(ierr)
      stop
   end if
 
-  ngpus = acc_get_num_devices(acc_device_nvidia)
-  if(rank == 0) then
-     print *, "num of GPUs = ", ngpus
-  end if
-
-  gpuid = mod(rank, ngpus)
-  if(ngpus == 0) gpuid = -1
-  if(gpuid >= 0) then
-     call acc_set_device_num(gpuid, acc_device_nvidia)
-  end if
-
   call MPI_get_processor_name(hostname, len_name, ierr)
-  write(*,'(A5,I2,A14,A12,A10,I2)') "Rank ", rank, ": hostname = ", hostname, "GPU num = ", gpuid
+  write(*,'(A5,I2,A14,A12)') "Rank ", rank, ": hostname = ", hostname
 
   allocate(a(nx,ny))
   allocate(b(nx,ny))
-    
+
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
-    
+
   st = MPI_WTIME()
   !**** Begin ****
 
@@ -90,20 +78,20 @@ program main
   !$acc end kernels
 
   !$acc end data
- 
+
   !**** End ****
 
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
-    
+
   et = MPI_WTIME()
 
   if (rank == 0) then
      write(*,'(A6,F10.6)'), "mean =", sum / (nx*ny)
      write(*,'(A6,F10.6,A6)'), "Time =", et-st, " [sec]"
   end if
-    
+
   deallocate(a,b)
-  
+
   call MPI_Finalize(ierr)
 
 end program main

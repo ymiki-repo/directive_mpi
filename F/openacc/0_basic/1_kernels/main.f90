@@ -8,7 +8,7 @@ program main
   real, allocatable :: a(:,:), b(:,:)
   integer :: i, j
   double precision :: st, et
-  integer :: dst_rank, tag, ngpus, gpuid
+  integer :: dst_rank, tag
   integer, allocatable :: istat(:)
   double precision :: sum
 
