@@ -14,3 +14,5 @@ STDIN.*
 *.tar.gz
 *make.log
 run.sh.*
+no_gdr_run.sh.*
+gdr_run.sh.*
