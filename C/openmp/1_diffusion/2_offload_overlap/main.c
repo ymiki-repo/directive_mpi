@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-#pragma acc data copy(f[0:ln]) create(fn[0:ln])
+#pragma omp target data map(alloc:fn[0:ln]) map(tofrom:f[0:ln])
     {
 
         start_timer();
@@ -97,9 +97,7 @@ int main(int argc, char *argv[])
             MPI_Status stat[4];
 	    MPI_Request req[4];
 
-#pragma acc wait(0)
-#pragma acc wait(1)
-#pragma acc host_data use_device(f)
+#pragma omp target data use_device_ptr(f)
             {
                 MPI_Irecv(&f[0]             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &req[0]);
                 MPI_Irecv(&f[nx*ny*(nz+mgn)], nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, &req[1]);
@@ -107,7 +105,7 @@ int main(int argc, char *argv[])
                 MPI_Isend(&f[nx*ny*mgn]     , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &req[3]);
             }
 	    MPI_Waitall(4,req,stat);
-#pragma acc wait(2)
+#pragma omp taskwait
 
             flop += diffusion3d(nprocs, rank, nx, ny, nz, mgn, dx, dy, dz, dt, kappa, f, fn);
 

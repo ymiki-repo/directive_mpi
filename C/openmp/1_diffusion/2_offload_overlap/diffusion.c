@@ -17,8 +17,7 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
     const float cc = 1.0F - (ce + cw + cn + cs + ct + cb);
 
     int k = 0;
-#pragma acc kernels async(0) present(f, fn)
-#pragma acc loop independent collapse(2)
+#pragma omp target teams loop collapse(2)
     for (int j = 0; j < ny; j++) {
 	for (int i = 0; i < nx; i++) {
 	    const int ix = nx*ny*(k+mgn) + nx*j + i;
@@ -33,8 +32,7 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 	}
     }
     k = nz-1;
-#pragma acc kernels async(1) present(f, fn)
-#pragma acc loop independent collapse(2)
+#pragma omp target teams loop collapse(2)
     for (int j = 0; j < ny; j++) {
 	for (int i = 0; i < nx; i++) {
 	    const int ix = nx*ny*(k+mgn) + nx*j + i;
@@ -49,8 +47,7 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 	}
     }
 
-#pragma acc kernels async(2) present(f, fn)
-#pragma acc loop independent collapse(3)
+#pragma omp target teams loop collapse(3) nowait
     for(int k = 1; k < nz-1; k++) {
         for (int j = 0; j < ny; j++) {
             for (int i = 0; i < nx; i++) {

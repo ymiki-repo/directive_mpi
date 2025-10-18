@@ -16,12 +16,9 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 
     const float cc = 1.0 - (ce + cw + cn + cs + ct + cb);
 
-#pragma acc kernels present(f, fn)
-#pragma acc loop independent
+#pragma omp target teams loop collapse(3)
     for(int k = 0; k < nz; k++) {
-#pragma acc loop independent
         for (int j = 0; j < ny; j++) {
-#pragma acc loop independent
             for (int i = 0; i < nx; i++) {
                 const int ix = nx*ny*(k+mgn) + nx*j + i;
                 const int ip = i == nx - 1 ? ix : ix + 1;

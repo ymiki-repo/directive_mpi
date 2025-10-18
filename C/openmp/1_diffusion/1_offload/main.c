@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-#pragma acc data copy(f[0:ln]) create(fn[0:ln])
+#pragma omp target data map(alloc:fn[0:ln]) map(tofrom:f[0:ln])
     {
 
         start_timer();
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
             const int tag = 0;
             MPI_Status status;
 
-#pragma acc host_data use_device(f)
+#pragma omp target data use_device_ptr(f)
             {
                 MPI_Send(&f[nx*ny*nz]      , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD);
                 MPI_Recv(&f[0]             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &status);
