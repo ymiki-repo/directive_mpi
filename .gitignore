@@ -16,3 +16,7 @@ STDIN.*
 run.sh.*
 no_gdr_run.sh.*
 gdr_run.sh.*
+nsys.sh.*
+report_*.qdstrm
+report_*.nsys-rep
+report_*.sqlite
