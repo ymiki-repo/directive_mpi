@@ -98,8 +98,8 @@ int main(int argc, char *argv[])
             MPI_Status stat[4];
             MPI_Request req[4];
 
-            SYNCHRONIZE(0)
-            SYNCHRONIZE(1)
+            WAIT_QUEUE(0)
+            WAIT_QUEUE(1)
             USE_DEVICE_DATA_FROM_HOST(f)
             {
                 MPI_Irecv(&f[0]             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &req[0]);
