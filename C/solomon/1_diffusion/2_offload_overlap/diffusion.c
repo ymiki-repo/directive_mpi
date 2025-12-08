@@ -32,7 +32,7 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 	}
     }
     k = nz-1;
-    OFFLOAD(AS_INDEPENDENT, COLLAPSE(2), ASYNC_QUEUE(1), ACC_CLAUSE_PRESENT(f, fn))
+    OFFLOAD(COLLAPSE(2), AS_INDEPENDENT, ASYNC_QUEUE(1), ACC_CLAUSE_PRESENT(f, fn))
     for (int j = 0; j < ny; j++) {
 	for (int i = 0; i < nx; i++) {
 	    const int ix = nx*ny*(k+mgn) + nx*j + i;
@@ -47,7 +47,7 @@ double diffusion3d(int nprocs, int rank, int nx, int ny, int nz, int mgn, float 
 	}
     }
 
-    OFFLOAD(AS_INDEPENDENT, COLLAPSE(3), AS_ASYNC(2), ACC_CLAUSE_PRESENT(f, fn))
+    OFFLOAD(COLLAPSE(3), AS_ASYNC(2), AS_INDEPENDENT, ACC_CLAUSE_PRESENT(f, fn))
     for(int k = 1; k < nz-1; k++) {
         for (int j = 0; j < ny; j++) {
             for (int i = 0; i < nx; i++) {
